@@ -62,10 +62,6 @@ const SYSTEM_PROMPT = `
 budget, description, tips은 자연스러운 한국어 표현을 써.
 `.trim();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 function buildFallbackResponse(filters: Filters) {
   const curatedIdeas = ideasData as Idea[];
   const filtered = filterIdeas(curatedIdeas, filters);
@@ -93,6 +89,9 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
 
   let filters: Filters;
   try {
