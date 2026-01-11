@@ -150,7 +150,8 @@ export async function POST(request: Request) {
       throw new Error("LLM 응답이 비어 있습니다.");
     }
 
-    const parsed = responseSchema.safeParse(JSON.parse(textOutput));
+    const sanitizedOutput = textOutput.replace(/```json|```/gi, "").trim();
+    const parsed = responseSchema.safeParse(JSON.parse(sanitizedOutput));
     if (!parsed.success) {
       console.error("[recommend_api] invalid response", parsed.error);
       return NextResponse.json(buildFallbackResponse(filters));
