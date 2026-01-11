@@ -125,14 +125,10 @@ export async function POST(request: Request) {
 `.trim()
         }
       ],
-      response_format: { type: "json_object" },
       temperature: 0.7
     });
 
-    const textOutput =
-      completion.output?.[0]?.content?.[0]?.text ??
-      completion.output_text ??
-      "";
+    const textOutput = completion.output_text?.[0] ?? "";
 
     if (!textOutput) {
       throw new Error("LLM 응답이 비어 있습니다.");

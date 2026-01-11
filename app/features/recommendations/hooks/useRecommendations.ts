@@ -17,9 +17,9 @@ export function useRecommendations(filters: Filters): UseRecommendationsResult {
   const [statusMessage, setStatusMessage] = useState("랜덤 추천을 실행해 보세요.");
   const [isLoading, setIsLoading] = useState(false);
   const [emptyMessage, setEmptyMessage] = useState<string>();
-  const tickerRef = useRef<NodeJS.Timeout>();
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const abortRef = useRef<AbortController>();
+  const tickerRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const handleFiltersChange = useCallback(() => {
     setRecommendations([]);
@@ -28,15 +28,15 @@ export function useRecommendations(filters: Filters): UseRecommendationsResult {
     setIsLoading(false);
     if (tickerRef.current) {
       clearInterval(tickerRef.current);
-      tickerRef.current = undefined;
+      tickerRef.current = null;
     }
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
-      timeoutRef.current = undefined;
+      timeoutRef.current = null;
     }
     if (abortRef.current) {
       abortRef.current.abort();
-      abortRef.current = undefined;
+      abortRef.current = null;
     }
   }, []);
 
@@ -53,7 +53,7 @@ export function useRecommendations(filters: Filters): UseRecommendationsResult {
     setIsLoading(true);
     setEmptyMessage(undefined);
     let ticks = 0;
-    tickerRef.current = setInterval(() => {
+      tickerRef.current = setInterval(() => {
       ticks += 1;
       const temp = SHUFFLE_PHRASES[Math.floor(Math.random() * SHUFFLE_PHRASES.length)];
       setStatusMessage(temp);
@@ -62,9 +62,9 @@ export function useRecommendations(filters: Filters): UseRecommendationsResult {
       }
     }, 160);
 
-    timeoutRef.current = setTimeout(() => {
-      timeoutRef.current = undefined;
-      abortRef.current = new AbortController();
+      timeoutRef.current = setTimeout(() => {
+        timeoutRef.current = null;
+        abortRef.current = new AbortController();
       fetch("/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,8 +93,11 @@ export function useRecommendations(filters: Filters): UseRecommendationsResult {
           setStatusMessage("추천 서비스를 사용할 수 없어요.");
         })
         .finally(() => {
-          if (tickerRef.current) clearInterval(tickerRef.current);
-          abortRef.current = undefined;
+          if (tickerRef.current) {
+            clearInterval(tickerRef.current);
+            tickerRef.current = null;
+          }
+          abortRef.current = null;
           setIsLoading(false);
         });
     }, 2200);
