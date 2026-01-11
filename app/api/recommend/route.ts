@@ -127,7 +127,24 @@ export async function POST(request: Request) {
       temperature: 0.7
     });
 
-    const textOutput = completion.output_text?.[0] ?? "";
+    const responseText = completion.output
+      ?.map((item) => {
+        if ("content" in item && Array.isArray(item.content)) {
+          return item.content
+            .map((chunk) => ("text" in chunk ? chunk.text ?? "" : ""))
+            .join("");
+        }
+        if ("output_text" in item && Array.isArray(item.output_text)) {
+          return item.output_text.join("");
+        }
+        return "";
+      })
+      .join("") ?? "";
+
+    const textOutput =
+      responseText ||
+      (Array.isArray(completion.output_text) ? completion.output_text.join("") : "") ||
+      "";
 
     if (!textOutput) {
       throw new Error("LLM 응답이 비어 있습니다.");
